@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+python-multipart
+pydantic
+face_recognition
+opencv-python
+numpy
+pymongo
+passlib[bcrypt]
+gspread
+gspread-formatting
+oauth2client
+python-dotenv
