@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import api from '../api';
-
+import axios from 'axios';
 const CaptureVideos = ({ route }) => {
   // State management
   const [recordingState, setRecordingState] = useState({
@@ -127,7 +126,7 @@ const CaptureVideos = ({ route }) => {
     data.append('video', mediaState.videoBlob, 'video.mp4');
     
     try {
-      const response = await api.post(route, data, {
+      const response = await axios.post(route, data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       
@@ -137,7 +136,7 @@ const CaptureVideos = ({ route }) => {
         uploadStatus: response.status === 200 ? 'success' : 'error'
       }));
       if(response.status === 200){
-        const res = await api.post("http://localhost:8000/flow/");
+        const res = await axios.post("http://localhost:8000/flow/");
         console.log(res.data);
         if(res.status === 200)
             alert("processing attendance");

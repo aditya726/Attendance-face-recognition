@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import api from '../api';
 import { useNavigate } from 'react-router-dom';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from '../constants';
 import Loading from './Loading';
 import './Form.css';
+import axios from 'axios';
+
+const ACCESS_TOKEN = 'access_token';
 
 function Form({ route, method }) {
     const [username, setUsername] = useState("");
@@ -24,18 +25,30 @@ function Form({ route, method }) {
         setLoading(true);
         e.preventDefault();
         try {
-            const data = method === 'login' ? { username, password } : { id, name: username, password, classes };
-            const response = await api.post(route, data);
+            let response;
             if (method === 'login') {
-                localStorage.setItem(ACCESS_TOKEN, response.data.access);
-                localStorage.setItem(REFRESH_TOKEN, response.data.refresh);
-                console.log(ACCESS_TOKEN);
-                // Success animation before redirect
+                // Match the TeacherLogin model in auth.py
+                response = await axios.post(route, { 
+                    username, 
+                    password 
+                });
+                
+                // Store token according to the Token model in auth.py (access_token and token_type)
+                localStorage.setItem(ACCESS_TOKEN, response.data.access_token);             
+              // Success animation before redirect
                 setAnimateIn(false);
                 setTimeout(() => {
                     navigate('/');
                 }, 600);
             } else {
+                // Match the TeacherRegister model in main.py
+                response = await axios.post(route, { 
+                    id, 
+                    name: username, 
+                    password, 
+                    classes 
+                });
+                
                 // Success animation before redirect
                 setAnimateIn(false);
                 setTimeout(() => {
@@ -44,7 +57,7 @@ function Form({ route, method }) {
             }
         }
         catch (error) {
-            console.log(error);
+            console.error("Error:", error.response?.data || error.message);
             if (methodName === 'Login')
                 alert("Invalid Credentials Or Not registered");
             else
@@ -54,6 +67,7 @@ function Form({ route, method }) {
         }
     }
 
+    // Rest of your component remains the same
     const handleClassChange = (index, value) => {
         const newClasses = [...classes];
         newClasses[index] = value;

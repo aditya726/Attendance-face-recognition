@@ -30,7 +30,7 @@ function Navbar() {
                     <NavLink to='/login' className='text-white px-3 py-2 rounded-md text-lg font-medium hover:bg-gray-700'>Login</NavLink>
                     <NavLink to='/viewattendance' className='text-white px-3 py-2 rounded-md text-lg font-medium hover:bg-gray-700'>View Attendance</NavLink>
                 </div>
-                <div className="text-white text-4xl font-bold text-center mr-30"><h1>Attendance System</h1></div>
+                <div className="text-white text-4xl font-bold text-center mr-30"><h1 className="mr-40">Attendance System</h1></div>
                 <div className="relative inline-block text-left" ref={dropdownRef}>
                     <button onClick={toggleDropdown} className='text-white px-3 py-2 rounded-md text-lg font-medium hover:bg-gray-700'>
                         Register

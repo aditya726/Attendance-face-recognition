@@ -23,16 +23,18 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+from auth import route as auth_router
 
 load_dotenv()
 app = FastAPI()
 app.state.processtime = 0
 
+# Include the auth router
+app.include_router(auth_router)
+
 uri = os.getenv("mongo_uri")
 # Create a new client and connect to the server
 MONGODB = MongoClient(uri, server_api=ServerApi('1'))
-# Path to your service account JSON file (store securely!)
-
     
 # CORS setup
 app.add_middleware(
@@ -60,10 +62,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 @app.get("/")
 async def root():
     return {"message": "Welcome to CLARA"}
-
-class TeacherLogin(BaseModel):
-    username : str
-    password: str
 
 class TeacherRegister(BaseModel):
     id: str
@@ -116,16 +114,6 @@ async def register_teacher(teacher: TeacherRegister):
     except Exception as e:
         print(f"Error in register_teacher: {e}")
         raise HTTPException(500, f"Internal Server Error: {e}")
-
-@app.post("/login")
-async def login(teacher: TeacherLogin):
-    print(teacher)
-    db_teacher = teachers.find_one({"name": teacher.username})
-    if not db_teacher:
-        raise HTTPException(status_code=400, detail="Invalid username")
-    if not pwd_context.verify(teacher.password, db_teacher["password"]):
-        raise HTTPException(status_code=400, detail="Invalid password")
-    return {"message": "Login successful", "Id : ": db_teacher["name"]}
 
 @app.post("/student")
 async def register_student(
@@ -249,7 +237,7 @@ async def process_video_task(teacher_id, video_path, batch, video_id):
                 break
 
             # Optimize frame
-            frame = cv2.resize(frame, (960, 540))  # Even smaller for speed
+            frame = cv2.resize(frame, (1280, 720))  # Even smaller for speed
             rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # Ensure RGB explicitly
             
             # Keep the processing frame line as requested
@@ -411,8 +399,7 @@ def send_mails(spreadsheet):
         print(f"Emails sent to absent students for {latest_date}")
     except Exception as e:
         print(f"Error in email process: {e}")
-                
-                
+
 @app.get("/getSpreadsheetUrl")
 async def get_spreadsheet_url(teacher_id: str):
     try:
@@ -422,7 +409,7 @@ async def get_spreadsheet_url(teacher_id: str):
 
         spreadsheet_name = f"{teacher_id}_{teacher['name']}"
         spreadsheet = gsclient.open(spreadsheet_name)
-        return {"url": spreadsheet.url , "teacher_id": teacher_id}
+        return {"url": spreadsheet.url, "teacher_id": teacher_id}
     except Exception as e:
         print(f"Error fetching spreadsheet URL: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch spreadsheet URL")

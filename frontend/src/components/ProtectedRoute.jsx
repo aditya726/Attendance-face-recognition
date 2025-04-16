@@ -1,57 +1,63 @@
-import React from 'react'
-import {Navigate} from 'react-router-dom';
-import api from '../api';
-import {jwtDecode} from 'jwt-decode';
-import { ACCESS_TOKEN,REFRESH_TOKEN } from '../constants';
-import {useState,useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
+import axios from 'axios';
 
-function ProtectedRoutes({children}){
+// Token constant - this must match what's used in the Form component
+const ACCESS_TOKEN = 'access_token';
 
-    useEffect(()=>{
-        auth().catch(()=>{isAuthorized(false)})
-    },[]);
+function ProtectedRoutes({ children }) {
+  const [isAuthorized, setAuthorized] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-    let [isAuthorized,setAuthorized] = useState(null);
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
-    const refresh_token = async ()=>{
-        const refreshToken = localStorage.getItem(REFRESH_TOKEN);
-        try{
+  const checkAuth = async () => {
+    // Get token from localStorage
+    const token = localStorage.getItem(ACCESS_TOKEN);
+    
+    if (!token) {
+      console.log("No token found");
+      setAuthorized(false);
+      setIsLoading(false);
+      return;
+    }
 
-            const response = await api.post("refresh-token url",
-            {refresh : refreshToken});
-
-            if(response.status = 200){
-                localStorage.setItem(ACCESS_TOKEN,response.data.access);
-                setAuthorized(true);
-            }else   
-                setAuthorized(false);
-
-        }catch(error){
-            console.log(error);
-            setAuthorized(false);
+    try {
+      // Make request to the auth/me endpoint with Bearer token
+      const response = await axios.get("http://localhost:8000/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
-    }
-    const auth = async ()=>{
-        const token = localStorage.getItem(ACCESS_TOKEN);
-        if(!token){
-            setAuthorized(false);
-            return ;
-        }
-        const decoded = jwtDecode(token);
-        const tokenExpiration = decoded.exp;
-        const now = Date.now()/1000;
-        if(tokenExpiration<now)
-            await refresh_token();
-        else
-            setAuthorized(true);
-    }
+      });
 
-    if(isAuthorized === null){
-        return (<div>Loading...</div>)
+      console.log("Auth response:", response.data);
+      if (response.status === 200) {
+        setAuthorized(true);
+      } else {
+        setAuthorized(false);
+      }
+    } catch (error) {
+      console.error("Auth error:", error.response?.status, error.response?.data);
+      // Log token for debugging (remove in production)
+      console.error("Token used:", token);
+      localStorage.removeItem(ACCESS_TOKEN);
+      setAuthorized(false);
+    } finally {
+      setIsLoading(false);
     }
+  };
 
-    return isAuthorized ? children : <Navigate to = '/login'></Navigate>
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-xl font-semibold">Verifying authentication...</div>
+      </div>
+    );
+  }
 
+  return isAuthorized ? children : <Navigate to='/login' />;
 }
 
 export default ProtectedRoutes;

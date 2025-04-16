@@ -16,10 +16,10 @@ function App() {
       <BrowserRouter>   
       <Navbar></Navbar>    
         <Routes>
-          <Route path ='/' element = {<CaptureVideos route = "http://localhost:8000/video/" />}></Route>
+          <Route path ='/' element = {<ProtectedRoutes><CaptureVideos route = "http://localhost:8000/video/" /></ProtectedRoutes>}></Route>
           <Route path ='/login' element = {<Login/>}></Route>
           <Route path ='/register' element = {<Register/>}></Route>
-          <Route path ='/registerstudents' element = {<RegisterStudents/>}></Route>
+          <Route path ='/registerstudents' element = {<ProtectedRoutes><RegisterStudents/></ProtectedRoutes>}></Route>
           <Route path = '/ViewAttendance' element = {<ViewAttendance></ViewAttendance>}></Route>
         </Routes>
       </BrowserRouter>
