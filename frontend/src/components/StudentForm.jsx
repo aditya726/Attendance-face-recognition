@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Toaster, toast } from 'react-hot-toast';
 import './Form.css';
 
 function StudentForm() {
@@ -11,6 +12,7 @@ function StudentForm() {
     const [animateIn, setAnimateIn] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [email, setEmail] = useState('');
+    
     // Animation on mount
     useEffect(() => {
         setAnimateIn(true);
@@ -38,18 +40,29 @@ function StudentForm() {
                 // Animate out before resetting
                 setAnimateIn(false);
                 
+                // Success notification with toast
+                toast.success('Student added successfully!', {
+                    duration: 3000,
+                    position: 'top-center',
+                });
+                
                 setTimeout(() => {
                     // Reset form after successful submission
                     setName('');
                     setNo('');
                     setBatch('');
+                    setEmail('');
                     setImages([]);
                     setPreviewUrls([]);
                     setAnimateIn(true);
-                    alert('Student added successfully');
                 }, 600);
             } else {
-                alert('Failed to add student');
+                // Error notification with toast
+                toast.error('Failed to add student', {
+                    duration: 4000,
+                    position: 'top-center',
+                });
+                
                 // Add shake animation to form
                 document.querySelector('form').classList.add('error-shake');
                 setTimeout(() => {
@@ -58,7 +71,13 @@ function StudentForm() {
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('An error occurred while adding the student');
+            
+            // Error notification with toast
+            toast.error('An error occurred while adding the student', {
+                duration: 4000,
+                position: 'top-center',
+            });
+            
             // Add shake animation to form
             document.querySelector('form').classList.add('error-shake');
             setTimeout(() => {
@@ -76,6 +95,12 @@ function StudentForm() {
         // Create preview URLs for selected images
         const newPreviewUrls = selectedFiles.map(file => URL.createObjectURL(file));
         setPreviewUrls(newPreviewUrls);
+        
+        // Show toast notification for uploaded images
+        toast.success(`${selectedFiles.length} image(s) selected`, {
+            duration: 2000,
+            position: 'bottom-right',
+        });
     };
     
     const handleDragOver = (e) => {
@@ -100,6 +125,18 @@ function StudentForm() {
             setImages(imageFiles);
             const newPreviewUrls = imageFiles.map(file => URL.createObjectURL(file));
             setPreviewUrls(newPreviewUrls);
+            
+            // Show toast notification for dropped images
+            toast.success(`${imageFiles.length} image(s) uploaded via drag & drop`, {
+                duration: 2000,
+                position: 'bottom-right',
+            });
+        } else {
+            // Show error toast for non-image files
+            toast.error('Please upload only image files', {
+                duration: 3000,
+                position: 'bottom-right',
+            });
         }
     };
     
@@ -112,10 +149,19 @@ function StudentForm() {
         URL.revokeObjectURL(newUrls[index]); // Clean up the URL
         newUrls.splice(index, 1);
         setPreviewUrls(newUrls);
+        
+        // Show toast notification for removed image
+        toast.info('Image removed', {
+            duration: 1500,
+            position: 'bottom-right',
+        });
     };
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4">
+            {/* Toast container */}
+            <Toaster />
+            
             <div 
                 className={`max-w-md w-full bg-white rounded-xl shadow-lg transform transition-all duration-500 
                 ${animateIn ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-95'} 
@@ -279,6 +325,9 @@ function StudentForm() {
                         </button>
                     </form>
                 </div>
+            </div>
+            <div className="mt-8 text-center text-slate-500 text-xs">
+                &copy; {new Date().getFullYear()} Learning Management System. All rights reserved.
             </div>
         </div>
     );
